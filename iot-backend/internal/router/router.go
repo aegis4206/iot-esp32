@@ -1,7 +1,7 @@
 package router
 
 import (
-	"aquanote-backend/internal/handler"
+	"iot-backend/internal/handler"
 	"net/http"
 
 	"github.com/gin-gonic/gin"

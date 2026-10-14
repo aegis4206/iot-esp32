@@ -8,15 +8,22 @@ import (
 	"syscall"
 	"time"
 
-	"aquanote-backend/internal/database"
-	"aquanote-backend/internal/handler"
-	"aquanote-backend/internal/repository"
-	"aquanote-backend/internal/router"
+	"iot-backend/internal/database"
+	"iot-backend/internal/handler"
+	"iot-backend/internal/model"
+	"iot-backend/internal/repository"
+	"iot-backend/internal/router"
 	"log"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
+
+func NewExceedLimitTracker() *model.ExceedLimitTracker {
+	return &model.ExceedLimitTracker{
+		Devices: make(map[string]int),
+	}
+}
 
 func main() {
 	// 初始化資料庫連線
@@ -27,15 +34,17 @@ func main() {
 	defer stop()
 
 	tempLogRepo := repository.NewTemperatureLogRepository(database.GetDB())
+	tcsDeviceRepo := repository.NewTCSDeviceRepository(database.GetDB())
+	tracker := NewExceedLimitTracker()
 
 	// 啟動 MQTT Broker
-	handler.StartMQTTBroker(ctx, tempLogRepo)
+	handler.StartMQTTBroker(ctx, tempLogRepo, tcsDeviceRepo, tracker)
 
 	// 設定 Gin Web Server
 	r := gin.Default()
 	r.Use(cors.New(cors.Config{
 		AllowOrigins: []string{"*"},
-		// AllowOrigins:    []string{"http://localhost:9001"},
+		// AllowOrigins:    []string{"http://localhost:9000"},
 		AllowMethods:    []string{"*"},
 		AllowWebSockets: true,
 	}))

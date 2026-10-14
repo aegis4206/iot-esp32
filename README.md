@@ -3,7 +3,7 @@ Aquanote
 硬體ESP32-S3 + TDS BOARD V1.0 + DS18B20 + TDS探針  
   
 後端專案結構  
-aquanote-backend/  
+iot-backend/  
 ├── cmd/  
 │   └── server/  
 │       └── main.go          # 應用程式入口  

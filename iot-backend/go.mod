@@ -1,4 +1,4 @@
-module aquanote-backend
+module iot-backend
 
 go 1.26.2
 

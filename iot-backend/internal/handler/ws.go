@@ -1,7 +1,8 @@
 package handler
 
 import (
-	model "aquanote-backend/internal/model"
+	"fmt"
+	model "iot-backend/internal/model"
 	"log"
 	"net/http"
 	"sync"
@@ -27,6 +28,16 @@ func Broadcast(data model.TemperatureLog) {
 	latestMutex.Lock()
 	latestData = &data
 	latestMutex.Unlock()
+
+	var deviceCode, temperature string
+	if data.DeviceCode != nil {
+		deviceCode = *data.DeviceCode
+	}
+	if data.Temperature != nil {
+		temperature = fmt.Sprintf("%.2f", *data.Temperature)
+	}
+	log.Printf("[MQTT] Received data: ID=%d DeviceCode=%s Temperature=%s RecordedAt=%s",
+		data.ID, deviceCode, temperature, data.RecordedAt.Format("2006-01-02 15:04:05"))
 
 	clientsMutex.RLock()
 	if len(clients) == 0 {

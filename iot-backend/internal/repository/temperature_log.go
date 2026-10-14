@@ -6,7 +6,7 @@ import (
 
 	"gorm.io/gorm"
 
-	"aquanote-backend/internal/model"
+	"iot-backend/internal/model"
 )
 
 type TemperatureLogRepository struct {

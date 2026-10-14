@@ -5,6 +5,7 @@
 #include <DallasTemperature.h>
 #include <ArduinoJson.h>
 #include <Adafruit_NeoPixel.h>
+#include "secrets.h" // SSID, PASSWORD, MQTT_SERVER, MQTT_PORT, MQTT_USER, MQTT_PASS
 
 // 設定腳位
 #define ONE_WIRE_BUS 2
@@ -17,14 +18,15 @@ OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature sensors(&oneWire);
 
 // WIFI 設定
-const char *ssid = "white";
-const char *password = "00000000";
+const char *ssid = SSID;
+const char *password = PASSWORD;
 // MQTT 設定
-const char *mqtt_server = "192.168.0.216";
-const int mqtt_port = 1883;
-const char *mqtt_user = "iot-test";
-const char *mqtt_pass = "iot-test";
-const char *mqtt_topic = "aquaponics/sensor/data";
+const char *mqtt_server = MQTT_SERVER;
+const int mqtt_port = MQTT_PORT;
+const char *mqtt_user = MQTT_USER;
+const char *mqtt_pass = MQTT_PASS;
+const char *mqtt_topic = "iot/sensor/data";
+
 String deviceId;
 
 WiFiClient espClient;
@@ -121,7 +123,7 @@ void setStatusLED(SysStatus status)
     pixels.setPixelColor(0, pixels.Color(0, 255, 0)); // 綠
     break;
   case SysStatus::MQTT_FAIL:
-    pixels.setPixelColor(0, pixels.Color(255, 100, 0)); // 橘
+    pixels.setPixelColor(0, pixels.Color(0, 0, 255)); // 藍
     break;
   case SysStatus::PUBLISH_FAIL:
     pixels.setPixelColor(0, pixels.Color(255, 255, 0)); // 黃
@@ -186,9 +188,17 @@ bool readTemperatureAndPublish()
   sensors.requestTemperatures();
   float tempC = sensors.getTempCByIndex(0);
 
-  if (tempC == DEVICE_DISCONNECTED_C)
+  if (tempC == DEVICE_DISCONNECTED_C || tempC1 == DEVICE_DISCONNECTED_C)
   {
     Serial.println("Error: Could not read temperature data");
+    setStatusLED(SysStatus::TEMP_FAIL);
+    return false;
+  }
+
+  // 85°C 為 DS18B20 上電重置值，代表轉換未完成或供電不穩
+  if (tempC == 85.0 || tempC1 == 85.0)
+  {
+    Serial.println("Error: Sensor returned power-on reset value (85C)");
     setStatusLED(SysStatus::TEMP_FAIL);
     return false;
   }
